@@ -1,4 +1,4 @@
-@props(['heading' => null])
+@props(['heading' => null, 'subheading' => null])
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -9,18 +9,38 @@
     @vite('resources/css/app.css')
 </head>
 <body class="min-h-screen bg-slate-100 antialiased">
-    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-        <a href="{{ url('/') }}" class="mb-8 flex items-center gap-2 text-slate-900">
-            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500 text-sm font-bold text-white">HD</span>
-            <span class="text-lg font-semibold">HelpDesk</span>
-        </a>
+    <div class="flex min-h-screen items-center justify-center p-4 sm:p-6">
+        <div class="grid w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-900/10 sm:grid-cols-2">
+            {{-- barra colorida no topo (mobile) --}}
+            <div class="h-1.5 bg-gradient-to-r from-blue-500 via-blue-700 to-indigo-950 sm:hidden"></div>
 
-        <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/60 ring-1 ring-slate-900/5">
-            @if ($heading)
-                <h1 class="mb-6 text-xl font-semibold text-slate-900">{{ $heading }}</h1>
-            @endif
+            {{-- painel com ondas (desktop) --}}
+            <div class="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-blue-800 to-indigo-950 sm:block">
+                <x-wave-pattern />
+            </div>
 
-            {{ $slot }}
+            {{-- formulário --}}
+            <div class="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-14 lg:px-16">
+                <div class="mx-auto w-full max-w-sm">
+                    <a href="{{ url('/') }}" class="mb-10 flex items-center justify-center gap-2">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-700">
+                            <span class="h-3 w-3 rounded-full border-2 border-white"></span>
+                        </span>
+                        <span class="text-lg font-bold text-slate-900">HelpDesk</span>
+                    </a>
+
+                    @if ($heading)
+                        <div class="mb-6">
+                            <h1 class="text-lg font-semibold text-slate-900">{{ $heading }}</h1>
+                            @if ($subheading)
+                                <p class="mt-1 text-sm text-slate-500">{{ $subheading }}</p>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{ $slot }}
+                </div>
+            </div>
         </div>
     </div>
 </body>
