@@ -1,5 +1,5 @@
 <x-layout.guest heading="Crie sua conta" subheading="Preencha os dados abaixo para criar sua conta">
-    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('register') }}" class="space-y-4" novalidate>
         @csrf
 
         <x-forms.input label="Nome" name="name" type="text" placeholder="Digite o nome completo" autofocus required />

@@ -7,7 +7,7 @@
 
     <p class="text-sm text-slate-600">Meus chamados chegam na Fase 4.</p>
 
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
+    <form method="POST" action="{{ route('logout') }}" class="mt-6" novalidate>
         @csrf
         <button
             type="submit"

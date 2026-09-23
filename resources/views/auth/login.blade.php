@@ -1,5 +1,5 @@
 <x-layout.guest heading="Acesse o portal" subheading="Entre usando seu e-mail e senha cadastrados">
-    <form method="POST" action="{{ route('login') }}" class="space-y-4">
+    <form method="POST" action="{{ route('login') }}" class="space-y-4" novalidate>
         @csrf
 
         <x-forms.input label="E-mail" name="email" type="email" placeholder="exemplo@mail.com" autofocus required />
