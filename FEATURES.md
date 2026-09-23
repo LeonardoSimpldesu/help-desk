@@ -32,11 +32,29 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 | `name` | string | |
 | `email` | string | unique |
 | `password` | string | bcrypt |
-| `avatar` | string\|null | path/url |
 | `phone` | string\|null | |
 | `created_at` / `updated_at` | timestamp | |
 
 **Relacionamentos:** tem muitos `Ticket` (como cliente), tem muitos `Ticket` (como técnico), tem muitos `Comment`.
+
+---
+
+### 3.1.1 `Client` e `Technician` (entidades que herdam de `User`)
+
+Cliente e técnico são modelos próprios que **estendem `User`** e compartilham a tabela `users` (single table). A distinção é feita pela role do Spatie.
+
+| Model | Role | Status |
+|---|---|---|
+| `App\Models\Client` | `client` | Implementado |
+| `App\Models\Technician` | `technician` | Planejado (mesmo padrão) |
+
+O comportamento comum fica no trait `App\Models\Concerns\HasRoleScope`, e cada model só implementa `roleName()`:
+- **Global scope** — consultas no model retornam apenas usuários com a role (`Client::all()` = só clientes).
+- **Role automática** — ao criar o registro, a role é atribuída (`Client::create()` já sai com `client`).
+- **Tabela `users`** — `getTable()` fixo, sem tabelas separadas.
+- **Morph class = `User`** — o Spatie grava `model_has_roles.model_type` como `App\Models\User`, então roles e relações polimórficas valem tanto para `User` quanto para a subclasse.
+
+> **Atenção:** `auth()->user()` sempre retorna `User` (é o model do provider de auth). Quando precisar da entidade específica, use `Client::find(auth()->id())`.
 
 ---
 
@@ -59,8 +77,8 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 | `status_id` | FK | → `statuses` |
 | `priority` | enum | `low`, `medium`, `high`, `urgent` |
 | `category_id` | FK | → `categories` |
-| `client_id` | FK | → `users` (role: client) |
-| `technician_id` | FK\|null | → `users` (role: technician) |
+| `client_id` | FK | → `users` (role: client) — relação `belongsTo(Client::class)` |
+| `technician_id` | FK\|null | → `users` (role: technician) — relação `belongsTo(Technician::class)` |
 | `value` | decimal\|null | Valor do serviço (ex: R$ 300,00) |
 | `deadline` | date\|null | Prazo de conclusão |
 | `closed_at` | timestamp\|null | Preenchido ao fechar |
@@ -99,7 +117,7 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 
 ### 4.2 Regras de negócio
 - Login com email + senha
-- Registro cria usuário com role **`client`** por padrão
+- Registro cria um **`Client`** (`RegisteredClientController`), que recebe a role **`client`** automaticamente
 - Técnicos e Admins são criados apenas pelo Admin
 - Senha mínima: 8 caracteres
 - Redirecionamento pós-login baseado na role:
@@ -141,8 +159,10 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 
 ### 5.2 `TechnicianResource` — Técnicos
 
+> Model: `Technician` (planejado, ver 3.1.1).
+
 **Listagem:**
-- Colunas: avatar, nome, e-mail, telefone, qtd de chamados ativos, ações (editar/excluir)
+- Colunas: nome, e-mail, telefone, qtd de chamados ativos, ações (editar/excluir)
 
 **Formulário:**
 - Nome, e-mail, telefone, senha (create only)
@@ -156,6 +176,8 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 ---
 
 ### 5.3 `ClientResource` — Clientes
+
+> Model: `Client` — o global scope já restringe a listagem a usuários com role `client`.
 
 **Listagem:**
 - Colunas: nome, e-mail, data de cadastro, qtd de chamados, ações
@@ -243,7 +265,6 @@ Sistema de gestão de chamados (tickets) com três perfis de acesso distintos, p
 ### 7.4 Perfil do Usuário
 
 - **Modal "Perfil":**
-  - Avatar (upload)
   - Nome, e-mail, telefone
   - Botão "Salvar"
 
@@ -294,7 +315,7 @@ admin
   ├── ticket: view_any, view, create, update, delete
   ├── comment: view_any, view, create, update, delete
   ├── user (technician): view_any, view, create, update, delete
-  ├── user (client): view_any, view, delete
+  ├── user (client): view_any, view, update, delete
   ├── category: view_any, view, create, update, delete
   └── status: view_any, view, create, update, delete
 
@@ -338,7 +359,6 @@ client
 
 ### 10.3 Spatie Packages
 - `spatie/laravel-permission` — roles, policies, middleware
-- `spatie/laravel-medialibrary` *(opcional)* — upload de avatar
 
 ---
 
