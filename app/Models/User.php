@@ -35,6 +35,23 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $panel->getId() === 'admin' && $this->hasAnyRole(['admin', 'technician']);
+        return $panel->getId() === 'admin' && $this->isStaff();
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasAnyRole(['admin', 'technician']);
+    }
+
+    /**
+     * Name of the route the user lands on after signing in, or null when no role grants access.
+     */
+    public function homeRouteName(): ?string
+    {
+        return match (true) {
+            $this->isStaff() => 'filament.admin.pages.dashboard',
+            $this->hasRole('client') => 'portal.index',
+            default => null,
+        };
     }
 }

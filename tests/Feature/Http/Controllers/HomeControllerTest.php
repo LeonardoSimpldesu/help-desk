@@ -27,3 +27,13 @@ it('redirects staff to the admin dashboard', function (string $role) {
     'admin' => 'admin',
     'technician' => 'technician',
 ]);
+
+it('signs out a user without a role and explains why', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/');
+
+    $response->assertRedirectToRoute('login');
+    $response->assertSessionHasErrors(['email' => 'Sua conta não possui acesso ao sistema.']);
+    $this->assertGuest();
+});

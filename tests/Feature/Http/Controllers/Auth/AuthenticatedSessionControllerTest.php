@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Client;
 use App\Models\User;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Support\Facades\Event;
 
 it('renders the login page for guests', function () {
     $response = $this->get(route('login'));
@@ -67,6 +70,63 @@ it('rejects a wrong password with the invalid credentials message', function () 
     $response->assertRedirectToRoute('login');
     $response->assertSessionHasErrors(['email' => 'Credenciais inválidas.']);
     $this->assertGuest();
+});
+
+it('signs out a user without a role right after logging in', function () {
+    $user = User::factory()->create();
+
+    $response = $this->followingRedirects()->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertSeeText('Sua conta não possui acesso ao sistema.');
+    $this->assertGuest();
+});
+
+it('locks the login after too many failed attempts', function () {
+    Event::fake([Lockout::class]);
+    $client = Client::factory()->create();
+    $credentials = ['email' => $client->email, 'password' => 'wrong-password'];
+
+    foreach (range(1, LoginRequest::MAX_ATTEMPTS) as $attempt) {
+        $this->post(route('login'), $credentials);
+    }
+
+    $response = $this->post(route('login'), ['email' => $client->email, 'password' => 'password']);
+
+    $response->assertSessionHasErrors('email');
+    expect(session('errors')->first('email'))->toStartWith('O número limite de tentativas de login foi atingido.');
+    $this->assertGuest();
+    Event::assertDispatched(Lockout::class);
+});
+
+it('keeps other emails unlocked when one email is locked', function () {
+    $locked = Client::factory()->create();
+    $other = Client::factory()->create();
+
+    foreach (range(1, LoginRequest::MAX_ATTEMPTS) as $attempt) {
+        $this->post(route('login'), ['email' => $locked->email, 'password' => 'wrong-password']);
+    }
+
+    $response = $this->post(route('login'), ['email' => $other->email, 'password' => 'password']);
+
+    $response->assertRedirectToRoute('portal.index');
+    $this->assertAuthenticatedAs($other);
+});
+
+it('resets the failed attempts after a successful login', function () {
+    $client = Client::factory()->create();
+
+    foreach (range(1, LoginRequest::MAX_ATTEMPTS - 1) as $attempt) {
+        $this->post(route('login'), ['email' => $client->email, 'password' => 'wrong-password']);
+    }
+    $this->post(route('login'), ['email' => $client->email, 'password' => 'password']);
+    $this->post(route('logout'));
+
+    $response = $this->post(route('login'), ['email' => $client->email, 'password' => 'wrong-password']);
+
+    $response->assertSessionHasErrors(['email' => 'Credenciais inválidas.']);
 });
 
 it('rejects an empty payload', function () {
