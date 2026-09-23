@@ -6,7 +6,8 @@
 
         <x-forms.input label="E-mail" name="email" type="email" placeholder="exemplo@mail.com" required />
 
-        <x-forms.input label="Telefone" name="phone" type="tel" placeholder="(00) 00000-0000" />
+        <x-forms.input label="Telefone" name="phone" type="tel" placeholder="(00) 00000-0000" inputmode="numeric" x-data
+            x-mask:dynamic="$input.replace(/\D/g, '').length > 10 ? '(99) 99999-9999' : '(99) 9999-99999'" />
 
         <x-forms.input label="Senha" name="password" type="password" placeholder="Digite sua senha" hint="Mínimo de 8 caracteres" required />
 
