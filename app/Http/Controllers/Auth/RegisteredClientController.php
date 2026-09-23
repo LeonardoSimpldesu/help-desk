@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Models\User;
+use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class RegisteredUserController extends Controller
+class RegisteredClientController extends Controller
 {
     public function create()
     {
@@ -19,16 +20,16 @@ class RegisteredUserController extends Controller
     {
         $data = $request->validated();
 
-        $user = User::create([
+        $client = DB::transaction(fn () => Client::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
-        ])->assignRole('client');
+        ]));
 
-        Auth::login($user);
+        Auth::login($client);
         $request->session()->regenerate();
 
-        return redirect()->route('portal.index')->with('success','Cadastro realizado com sucesso!');
+        return redirect()->route('portal.index')->with('success', 'Cadastro realizado com sucesso!');
     }
 }
