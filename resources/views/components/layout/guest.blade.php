@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $heading ? $heading.' — HelpDesk' : 'HelpDesk' }}</title>
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-100 antialiased">
     <div class="flex min-h-screen items-center justify-center p-4 sm:p-6">
-        <div class="grid w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-900/10 sm:grid-cols-2">
+        <div class="grid w-full max-w-8xl min-h-[94svh] overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-900/10 sm:grid-cols-2">
             {{-- barra colorida no topo (mobile) --}}
             <div class="h-1.5 bg-gradient-to-r from-blue-500 via-blue-700 to-indigo-950 sm:hidden"></div>
 
