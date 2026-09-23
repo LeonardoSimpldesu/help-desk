@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Rules\BrazilianPhone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
@@ -26,7 +27,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'lowercase', 'unique:users'],
-            'phone' => ['nullable', 'digits_between:10,11'],
+            'phone' => ['nullable', new BrazilianPhone],
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }

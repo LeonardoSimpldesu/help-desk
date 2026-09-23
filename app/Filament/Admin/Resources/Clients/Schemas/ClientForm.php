@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Clients\Schemas;
 
+use App\Rules\BrazilianPhone;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
@@ -26,16 +27,9 @@ class ClientForm
                 TextInput::make('phone')
                     ->label('Telefone')
                     ->tel()
-                    ->mask(RawJs::make(<<<'JS'
-                        $input.replace(/\D/g, '').length > 10
-                            ? '(99) 99999-9999'
-                            : '(99) 9999-9999'
-                    JS))
+                    ->mask(RawJs::make(BrazilianPhone::MASK))
                     ->stripCharacters(['(', ')', ' ', '-'])
-                    ->rules(['nullable', 'digits_between:10,11'])
-                    ->validationMessages([
-                        'digits_between' => 'Informe um telefone válido com DDD (fixo ou celular).',
-                    ]),
+                    ->rules(['nullable', new BrazilianPhone]),
             ]);
     }
 }
