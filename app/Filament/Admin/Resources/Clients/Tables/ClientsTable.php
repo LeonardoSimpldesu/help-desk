@@ -20,7 +20,7 @@ class ClientsTable
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('email')
-                    ->label('Endereço de Email')
+                    ->label('Email')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('email_verified_at')
