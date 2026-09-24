@@ -3,3 +3,13 @@
 @source '../../../../app/Filament/Admin/**/*';
 @source '../../../../resources/views/filament/admin/**/*';
 @source '../../../../resources/views/components/**/*';
+
+/*
+ * Filament's expandableLimitedList() only keeps every item in the DOM (for the toggle to reveal)
+ * when the column also has listWithLineBreaks(), but that forces the badge list to stack vertically.
+ * Force it back to a horizontal, wrapping layout for this specific column.
+ */
+.fi-ta-schedule-badges ul {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+}

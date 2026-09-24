@@ -58,6 +58,22 @@ O comportamento comum fica no trait `App\Models\Concerns\HasRoleScope`, e cada m
 
 ---
 
+### 3.1.2 `Schedule` (Horários de Atendimento do Técnico)
+
+Catálogo fixo de horários que o admin pode liberar para cada técnico — não é um valor livre digitado pelo técnico.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | bigint | PK |
+| `starts_at` | time | Início do slot, único (ex: `07:00`, `08:00` ... `23:00`) |
+
+- **Catálogo seedado**: 17 registros fixos, de hora em hora, das 07:00 às 23:00 (`ScheduleSeeder`).
+- **Relação com `Technician`**: `belongsToMany` via pivot `schedule_technician` (`schedule_id` + `technician_id`, chave primária composta). O admin marca no formulário do técnico quais slots ele pode atender.
+- **Sem variação por dia da semana** — o conjunto de horários liberados vale igual para todos os dias.
+- `technician_id` na pivot aponta para `users.id` (`constrained('users')`), por causa do single-table inheritance do `Technician`.
+
+---
+
 ### 3.2 `Category` (Serviços)
 | Campo | Tipo | Notas |
 |---|---|---|
@@ -159,14 +175,18 @@ O comportamento comum fica no trait `App\Models\Concerns\HasRoleScope`, e cada m
 
 ### 5.2 `TechnicianResource` — Técnicos
 
-> Model: `Technician` (planejado, ver 3.1.1).
+> Model: `Technician` (ver 3.1.1).
 
 **Listagem:**
-- Colunas: nome, e-mail, telefone, qtd de chamados ativos, ações (editar/excluir)
+- Colunas: nome, e-mail, telefone, e-mail verificado em, criado/atualizado em, ações (editar)
+- Coluna "Disponibilidade": badges com os horários (`HH:mm`) que o técnico atende, ordenados cronologicamente, com truncamento (mostra os 4 primeiros + "+N", expansível)
 
 **Formulário:**
-- Nome, e-mail, telefone, senha (create only)
-- Atribui automaticamente role `technician`
+- Nome, e-mail, telefone, senha (exibido apenas no create; oculto na edição)
+- Horários de atendimento agrupados em `Fieldset` com 3 `ToggleButtons` multi-seleção — Manhã (07–12h), Tarde (13–18h), Noite (19–23h) — cada um listando os `Schedule` (ver 3.1.2) daquele período
+- Na edição, os horários já atribuídos ao técnico vêm pré-selecionados em cada grupo
+- Atribui automaticamente role `technician` (via `HasRoleScope`)
+- Persistência dos horários: os 3 campos de horário não são atributos do model — são combinados e sincronizados na pivot `schedule_technician` via `afterCreate`/`afterSave` nas páginas Create/Edit
 
 > **Tela específica "Perfil do Técnico"** (vista no Figma):
 > - Exibe dados pessoais (nome, e-mail, telefone)
@@ -351,11 +371,11 @@ client
 - `Notifications` do Filament após actions (toast)
 
 ### 10.2 Eloquent
-- Relacionamentos: `belongsTo`, `hasMany`, `belongsToMany`
+- Relacionamentos: `belongsTo`, `hasMany`, `belongsToMany` (`Technician` ↔ `Schedule` via `schedule_technician`)
 - Global Scopes para role-based filtering
 - Accessors para formatação de valor (R$) e código (#0001)
 - Observers para: gerar código automático ao criar ticket, preencher `closed_at`
-- Seeders: Status padrão, Roles e permissões, usuário Admin padrão
+- Seeders: Status padrão, Roles e permissões, usuário Admin padrão, catálogo fixo de `Schedule` (07:00–23:00, 1h)
 
 ### 10.3 Spatie Packages
 - `spatie/laravel-permission` — roles, policies, middleware
@@ -374,7 +394,7 @@ client
 ### Fase 2 — Admin Panel (Filament)
 - [ ] `TicketResource` com filtros e colunas
 - [ ] `RelationManager` Comments em Ticket
-- [ ] `TechnicianResource`
+- [ ] `TechnicianResource` (inclui multi-select de `Schedule`)
 - [ ] `ClientResource`
 - [ ] `CategoryResource`
 - [ ] Actions: AtribuirAMim, FecharTicket, ReabrirTicket
